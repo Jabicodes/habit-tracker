@@ -1,4 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
+import { Screen } from './ui/Screen'
+import { Card } from './ui/Card'
+import { Button } from './ui/Button'
+import { MenuIcon, CheckIcon } from './ui/Icons'
+import { ProgressBar } from './ProgressBar'
 
 export default function HabitView({ habits, completions, streak, onComplete, onManage }) {
   const active = habits.filter((h) => h.is_active)
@@ -7,7 +12,6 @@ export default function HabitView({ habits, completions, streak, onComplete, onM
   const total = active.length
   const doneCount = completed.length
   const allDone = total > 0 && doneCount === total
-  const progress = total > 0 ? (doneCount / total) * 100 : 0
 
   const currentHabit = uncompleted[0] || null
 
@@ -69,80 +73,38 @@ export default function HabitView({ habits, completions, streak, onComplete, onM
 
   if (total === 0) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 p-6 text-center">
+      <Screen className="items-center justify-center p-6 text-center">
         <div className="text-7xl mb-6 animate-pop-in">📋</div>
         <h1 className="text-2xl font-bold text-white mb-3">No habits yet</h1>
         <p className="text-slate-400 mb-10">Add your first habit to start building streaks.</p>
-        <button
-          onClick={onManage}
-          className="bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-semibold px-10 py-4 rounded-2xl transition-all text-lg shadow-lg shadow-indigo-500/20"
-        >
+        <Button size="lg" onClick={onManage} className="rounded-2xl shadow-lg shadow-indigo-500/20">
           Add Habits
-        </button>
-      </div>
+        </Button>
+      </Screen>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col max-w-md mx-auto px-5">
+    <Screen>
       {/* ── Header ── */}
       <div className="flex items-center justify-between pt-safe mb-6">
         <div>
           <h1 className="text-lg font-bold text-white">Today</h1>
           <p className="text-slate-500 text-sm">{today}</p>
         </div>
-        <button
-          onClick={onManage}
-          aria-label="Manage habits"
-          className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-400 hover:text-white transition-all"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="w-5 h-5">
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
-        </button>
+        <Button variant="panel" size="icon" onClick={onManage} aria-label="Manage habits">
+          <MenuIcon />
+        </Button>
       </div>
 
       {/* ── Stats row ── */}
       <div className="grid grid-cols-2 gap-3 mb-6">
-        <div className="bg-slate-800 rounded-2xl px-4 py-3 flex items-center gap-3">
-          <span className="text-2xl">🔥</span>
-          <div className="min-w-0">
-            <p className="text-xl font-bold text-white leading-none">
-              {streak}
-              <span className="text-slate-400 text-sm font-normal ml-1">
-                {streak === 1 ? 'day' : 'days'}
-              </span>
-            </p>
-            <p className="text-slate-500 text-xs mt-0.5">streak</p>
-          </div>
-        </div>
-        <div className="bg-slate-800 rounded-2xl px-4 py-3 flex items-center gap-3">
-          <span className="text-2xl">✅</span>
-          <div className="min-w-0">
-            <p className="text-xl font-bold text-white leading-none">
-              {doneCount}
-              <span className="text-slate-400 text-sm font-normal">/{total}</span>
-            </p>
-            <p className="text-slate-500 text-xs mt-0.5">done today</p>
-          </div>
-        </div>
+        <StatCard emoji="🔥" value={streak} label={streak === 1 ? 'day' : 'days'} sublabel="streak" />
+        <StatCard emoji="✅" value={doneCount} label={`/${total}`} sublabel="done today" />
       </div>
 
       {/* ── Progress bar ── */}
-      <div className="mb-8">
-        <div className="flex justify-between text-xs text-slate-500 mb-1.5">
-          <span>Progress</span>
-          <span>{Math.round(progress)}%</span>
-        </div>
-        <div className="h-2.5 bg-slate-800 rounded-full overflow-hidden">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500"
-            style={{ width: `${progress}%`, transition: 'width 500ms cubic-bezier(0.4,0,0.2,1)' }}
-          />
-        </div>
-      </div>
+      <ProgressBar value={doneCount} max={total} className="mb-8" />
 
       {/* ── Main content ── */}
       <div className="flex-1 flex flex-col justify-center pb-safe">
@@ -162,13 +124,28 @@ export default function HabitView({ habits, completions, streak, onComplete, onM
           </div>
         )}
       </div>
-    </div>
+    </Screen>
+  )
+}
+
+function StatCard({ emoji, value, label, sublabel }) {
+  return (
+    <Card className="px-4 py-3 flex items-center gap-3 border-slate-700/60">
+      <span className="text-2xl">{emoji}</span>
+      <div className="min-w-0">
+        <p className="text-xl font-bold text-white leading-none">
+          {value}
+          <span className="text-slate-400 text-sm font-normal ml-1">{label}</span>
+        </p>
+        <p className="text-slate-500 text-xs mt-0.5">{sublabel}</p>
+      </div>
+    </Card>
   )
 }
 
 function HabitCard({ habit, remaining, onComplete }) {
   return (
-    <div className="bg-slate-800 border border-slate-700/60 rounded-3xl p-7 shadow-2xl">
+    <Card className="rounded-3xl p-7 shadow-2xl">
       <p className="text-slate-500 text-sm mb-3">
         {remaining} {remaining === 1 ? 'habit' : 'habits'} remaining
       </p>
@@ -176,17 +153,15 @@ function HabitCard({ habit, remaining, onComplete }) {
       {habit.description && (
         <p className="text-slate-400 text-base leading-relaxed mb-6">{habit.description}</p>
       )}
-
-      <button
+      <Button
+        size="lg"
         onClick={onComplete}
-        className="mt-6 w-full bg-indigo-600 hover:bg-indigo-500 active:scale-[0.97] text-white font-bold text-lg py-5 rounded-2xl transition-all duration-150 shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2"
+        className="mt-6 w-full rounded-2xl shadow-lg shadow-indigo-600/25"
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-          <polyline points="20 6 9 17 4 12" />
-        </svg>
+        <CheckIcon />
         Complete
-      </button>
-    </div>
+      </Button>
+    </Card>
   )
 }
 
@@ -202,12 +177,9 @@ function AllDone({ streak, onManage }) {
         </div>
       )}
       <div className="mt-4">
-        <button
-          onClick={onManage}
-          className="text-slate-500 hover:text-slate-300 transition-colors text-sm"
-        >
+        <Button variant="ghost" size="none" onClick={onManage}>
           Manage habits →
-        </button>
+        </Button>
       </div>
     </div>
   )

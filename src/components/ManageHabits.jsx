@@ -16,6 +16,11 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { Screen } from './ui/Screen'
+import { Card } from './ui/Card'
+import { Button } from './ui/Button'
+import { Input } from './ui/Input'
+import { ChevronLeftIcon, PlusIcon, PencilIcon, TrashIcon, DragHandleIcon } from './ui/Icons'
 
 export default function ManageHabits({ habits, onAdd, onUpdate, onDelete, onReorder, onBack }) {
   const [showAdd, setShowAdd] = useState(false)
@@ -55,73 +60,65 @@ export default function ManageHabits({ habits, onAdd, onUpdate, onDelete, onReor
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col max-w-md mx-auto px-5">
+    <Screen>
       {/* ── Header ── */}
       <div className="flex items-center gap-4 pt-safe mb-8">
-        <button
-          onClick={onBack}
-          className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-400 hover:text-white transition-all"
-          aria-label="Back"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-        </button>
+        <Button variant="panel" size="icon" onClick={onBack} aria-label="Back">
+          <ChevronLeftIcon />
+        </Button>
         <div className="flex-1">
           <h1 className="text-xl font-bold text-white">Manage Habits</h1>
           <p className="text-slate-500 text-sm">{habits.length} habit{habits.length !== 1 ? 's' : ''}</p>
         </div>
-        <button
+        <Button
+          variant="panel-accent"
+          size="icon"
           onClick={() => setShowAdd((v) => !v)}
-          className="p-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white transition-all"
           aria-label="Add habit"
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="w-5 h-5">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-        </button>
+          <PlusIcon />
+        </Button>
       </div>
 
       {/* ── Add form ── */}
       {showAdd && (
-        <form
-          onSubmit={handleAdd}
-          className="bg-slate-800 border border-slate-700/60 rounded-2xl p-5 mb-6 animate-fade-up"
-        >
-          <h2 className="text-white font-semibold mb-4">New Habit</h2>
-          <input
-            autoFocus
-            type="text"
-            placeholder="Habit name *"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            className="w-full bg-slate-700/60 border border-slate-600 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-3"
-            required
-          />
-          <input
-            type="text"
-            placeholder="Description (optional)"
-            value={newDesc}
-            onChange={(e) => setNewDesc(e.target.value)}
-            className="w-full bg-slate-700/60 border border-slate-600 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4"
-          />
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={() => { setShowAdd(false); setNewName(''); setNewDesc('') }}
-              className="flex-1 py-3 rounded-xl border border-slate-600 text-slate-400 hover:text-white hover:border-slate-500 transition-colors font-medium"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={saving || !newName.trim()}
-              className="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {saving ? 'Adding…' : 'Add Habit'}
-            </button>
-          </div>
+        <form onSubmit={handleAdd} className="mb-6 animate-fade-up">
+          <Card className="p-5">
+            <h2 className="text-white font-semibold mb-4">New Habit</h2>
+            <Input
+              autoFocus
+              type="text"
+              placeholder="Habit name *"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              className="mb-3"
+              required
+            />
+            <Input
+              type="text"
+              placeholder="Description (optional)"
+              value={newDesc}
+              onChange={(e) => setNewDesc(e.target.value)}
+              className="mb-4"
+            />
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="secondary"
+                className="flex-1"
+                onClick={() => { setShowAdd(false); setNewName(''); setNewDesc('') }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1"
+                disabled={saving || !newName.trim()}
+              >
+                {saving ? 'Adding…' : 'Add Habit'}
+              </Button>
+            </div>
+          </Card>
         </form>
       )}
 
@@ -157,7 +154,7 @@ export default function ManageHabits({ habits, onAdd, onUpdate, onDelete, onReor
           </SortableContext>
         </DndContext>
       )}
-    </div>
+    </Screen>
   )
 }
 
@@ -199,120 +196,84 @@ function SortableHabitItem({ habit, isEditing, onStartEdit, onCancelEdit, onSave
   if (isEditing) {
     return (
       <li ref={setNodeRef} style={style}>
-        <form
-          onSubmit={handleSave}
-          className="bg-slate-800 border border-indigo-500/50 rounded-2xl p-5"
-        >
-          <input
-            autoFocus
-            type="text"
-            value={editName}
-            onChange={(e) => setEditName(e.target.value)}
-            className="w-full bg-slate-700/60 border border-slate-600 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-3"
-            required
-          />
-          <input
-            type="text"
-            value={editDesc}
-            onChange={(e) => setEditDesc(e.target.value)}
-            placeholder="Description (optional)"
-            className="w-full bg-slate-700/60 border border-slate-600 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4"
-          />
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={onCancelEdit}
-              className="flex-1 py-2.5 rounded-xl border border-slate-600 text-slate-400 hover:text-white transition-colors font-medium"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={saving || !editName.trim()}
-              className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-colors disabled:opacity-50"
-            >
-              {saving ? 'Saving…' : 'Save'}
-            </button>
-          </div>
+        <form onSubmit={handleSave}>
+          <Card className="p-5 border-indigo-500/50">
+            <Input
+              autoFocus
+              type="text"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              className="mb-3"
+              required
+            />
+            <Input
+              type="text"
+              value={editDesc}
+              onChange={(e) => setEditDesc(e.target.value)}
+              placeholder="Description (optional)"
+              className="mb-4"
+            />
+            <div className="flex gap-3">
+              <Button type="button" variant="secondary" className="flex-1 py-2.5" onClick={onCancelEdit}>
+                Cancel
+              </Button>
+              <Button type="submit" className="flex-1 py-2.5" disabled={saving || !editName.trim()}>
+                {saving ? 'Saving…' : 'Save'}
+              </Button>
+            </div>
+          </Card>
         </form>
       </li>
     )
   }
 
   return (
-    <li
-      ref={setNodeRef}
-      style={style}
-      className="bg-slate-800 border border-slate-700/60 rounded-2xl flex items-center gap-3 px-4 py-4 select-none"
-    >
-      {/* Drag handle */}
-      <button
-        {...attributes}
-        {...listeners}
-        className="text-slate-600 hover:text-slate-400 active:text-slate-300 transition-colors cursor-grab active:cursor-grabbing touch-none p-1 -ml-1 shrink-0"
-        aria-label="Drag to reorder"
-      >
-        <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-          <circle cx="9" cy="7" r="1.5" />
-          <circle cx="9" cy="12" r="1.5" />
-          <circle cx="9" cy="17" r="1.5" />
-          <circle cx="15" cy="7" r="1.5" />
-          <circle cx="15" cy="12" r="1.5" />
-          <circle cx="15" cy="17" r="1.5" />
-        </svg>
-      </button>
+    <li ref={setNodeRef} style={style}>
+      <Card className="flex items-center gap-3 px-4 py-4 select-none">
+        {/* Drag handle — kept as plain button for dnd-kit listener spread */}
+        <button
+          {...attributes}
+          {...listeners}
+          className="text-slate-600 hover:text-slate-400 active:text-slate-300 transition-colors cursor-grab active:cursor-grabbing touch-none p-1 -ml-1 shrink-0"
+          aria-label="Drag to reorder"
+        >
+          <DragHandleIcon />
+        </button>
 
-      {/* Text */}
-      <div className="flex-1 min-w-0">
-        <p className="text-white font-medium truncate">{habit.name}</p>
-        {habit.description && (
-          <p className="text-slate-500 text-sm truncate">{habit.description}</p>
+        {/* Text */}
+        <div className="flex-1 min-w-0">
+          <p className="text-white font-medium truncate">{habit.name}</p>
+          {habit.description && (
+            <p className="text-slate-500 text-sm truncate">{habit.description}</p>
+          )}
+        </div>
+
+        {/* Actions */}
+        {confirmDelete ? (
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-slate-400 text-xs">Delete?</span>
+            <Button variant="confirm" size="sm" onClick={() => onDelete()}>Yes</Button>
+            <Button variant="dismiss" size="sm" onClick={() => setConfirmDelete(false)}>No</Button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              onClick={handleStartEdit}
+              className="p-2 rounded-lg text-slate-500 hover:text-white hover:bg-slate-700 transition-all"
+              aria-label="Edit"
+            >
+              <PencilIcon />
+            </button>
+            <button
+              onClick={() => setConfirmDelete(true)}
+              className="p-2 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all"
+              aria-label="Delete"
+            >
+              <TrashIcon />
+            </button>
+          </div>
         )}
-      </div>
-
-      {/* Actions */}
-      {confirmDelete ? (
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-slate-400 text-xs">Delete?</span>
-          <button
-            onClick={() => onDelete()}
-            className="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-semibold transition-colors"
-          >
-            Yes
-          </button>
-          <button
-            onClick={() => setConfirmDelete(false)}
-            className="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold transition-colors"
-          >
-            No
-          </button>
-        </div>
-      ) : (
-        <div className="flex items-center gap-1 shrink-0">
-          <button
-            onClick={handleStartEdit}
-            className="p-2 rounded-lg text-slate-500 hover:text-white hover:bg-slate-700 transition-all"
-            aria-label="Edit"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-            </svg>
-          </button>
-          <button
-            onClick={() => setConfirmDelete(true)}
-            className="p-2 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all"
-            aria-label="Delete"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-              <path d="M10 11v6M14 11v6" />
-              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-            </svg>
-          </button>
-        </div>
-      )}
+      </Card>
     </li>
   )
 }
