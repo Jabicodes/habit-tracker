@@ -4,17 +4,7 @@ import { Button } from './ui/Button'
 import { Input } from './ui/Input'
 import { CheckIcon } from './ui/Icons'
 
-// Strip everything that's not valid in an email local-part, then lowercase.
-// This handles spaces, accented chars, @, +, etc. before they reach Supabase.
-const sanitize = (raw) =>
-  raw
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9._-]/g, '')   // strip everything invalid in an email local-part
-    .replace(/\.{2,}/g, '.')         // collapse consecutive dots (e.g. "a..b" → "a.b")
-    .replace(/^[._-]+|[._-]+$/g, '') // strip leading/trailing dots, underscores, dashes
-
-const toEmail = (username) => `${sanitize(username)}@habittracker.com`
+const toEmail = (username) => `${username.toLowerCase().trim()}@habittracker.com`
 
 // Supabase AuthError has both .message (string) and .code (string) fields.
 // Check both so we aren't brittle against message wording changes.
@@ -22,8 +12,8 @@ function toFriendly(err) {
   const code = err?.code ?? ''
   const msg  = (err?.message ?? '').toLowerCase()
 
-  if (code === 'user_already_exists' || msg.includes('already registered')) {
-    return { text: 'That username is already taken. Try a different one.', type: 'error' }
+  if (code === 'user_already_exists' || msg.includes('already registered') || msg.includes('user already')) {
+    return { text: 'Username already taken, please choose another.', type: 'error' }
   }
   if (code === 'email_not_confirmed' || msg.includes('not confirmed') || msg.includes('email_not_confirmed')) {
     return {
@@ -61,14 +51,8 @@ export default function AuthScreen() {
     e.preventDefault()
     setMessage(null)
 
-    // Sanitize first so Supabase always receives a valid email local-part
-    const clean = sanitize(username)
-    if (!clean) {
-      setMessage({ text: 'Username can only contain letters, numbers, . _ and -.', type: 'error' })
-      return
-    }
-
-    const email = `${clean}@habittracker.com`
+    const email = toEmail(username)
+    console.log('[AuthScreen] sending email to Supabase:', email)
 
     setLoading(true)
     try {
@@ -77,6 +61,13 @@ export default function AuthScreen() {
 
         if (error) {
           setMessage(toFriendly(error))
+          return
+        }
+
+        // When email confirmation is off, Supabase silently "succeeds" for duplicate
+        // emails but returns an empty identities array instead of an error.
+        if (data.user?.identities?.length === 0) {
+          setMessage({ text: 'Username already taken, please choose another.', type: 'error' })
           return
         }
 
@@ -111,7 +102,7 @@ export default function AuthScreen() {
     }
   }
 
-  const canSubmit = !loading && sanitize(username).length > 0 && password.length > 0
+  const canSubmit = !loading && username.trim().length > 0 && password.length > 0
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-5">
