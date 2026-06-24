@@ -20,9 +20,9 @@ import { Screen } from './ui/Screen'
 import { Card } from './ui/Card'
 import { Button } from './ui/Button'
 import { Input } from './ui/Input'
-import { ChevronLeftIcon, PlusIcon, PencilIcon, TrashIcon, DragHandleIcon } from './ui/Icons'
+import { ChevronLeftIcon, PlusIcon, PencilIcon, TrashIcon, DragHandleIcon, LogOutIcon } from './ui/Icons'
 
-export default function ManageHabits({ habits, onAdd, onUpdate, onDelete, onReorder, onBack }) {
+export default function ManageHabits({ habits, onAdd, onUpdate, onDelete, onReorder, onBack, username, onSignOut }) {
   const [showAdd, setShowAdd] = useState(false)
   const [newName, setNewName] = useState('')
   const [newDesc, setNewDesc] = useState('')
@@ -154,6 +154,18 @@ export default function ManageHabits({ habits, onAdd, onUpdate, onDelete, onReor
           </SortableContext>
         </DndContext>
       )}
+
+      {/* ── Sign out ── */}
+      <div className="mt-6 pt-4 border-t border-slate-800 pb-safe flex items-center justify-between">
+        <p className="text-slate-600 text-xs truncate flex-1">@{username}</p>
+        <button
+          onClick={onSignOut}
+          className="flex items-center gap-1.5 text-slate-600 hover:text-slate-400 transition-colors text-xs ml-4 shrink-0"
+        >
+          <LogOutIcon />
+          Sign out
+        </button>
+      </div>
     </Screen>
   )
 }

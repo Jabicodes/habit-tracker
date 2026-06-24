@@ -1,11 +1,14 @@
 import { useState } from 'react'
+import { useAuth } from './hooks/useAuth'
 import { useHabits } from './hooks/useHabits'
+import AuthScreen from './components/AuthScreen'
 import HabitView from './components/HabitView'
 import ManageHabits from './components/ManageHabits'
 import { Screen } from './components/ui/Screen'
 
 export default function App() {
-  const [screen, setScreen] = useState('main') // 'main' | 'manage'
+  const { session, user, loading: authLoading, signOut } = useAuth()
+  const [screen, setScreen] = useState('main')
 
   const {
     habits,
@@ -18,7 +21,21 @@ export default function App() {
     updateHabit,
     deleteHabit,
     reorderHabits,
-  } = useHabits()
+  } = useHabits(user?.id)
+
+  // Resolving persisted session — show a brief spinner
+  if (authLoading) {
+    return (
+      <Screen className="items-center justify-center">
+        <div className="w-10 h-10 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
+      </Screen>
+    )
+  }
+
+  // Not logged in — show auth screen
+  if (!session) {
+    return <AuthScreen />
+  }
 
   if (error) {
     return (
@@ -53,6 +70,8 @@ export default function App() {
         onDelete={deleteHabit}
         onReorder={reorderHabits}
         onBack={() => setScreen('main')}
+        username={user.email.replace('@habittracker.com', '')}
+        onSignOut={signOut}
       />
     )
   }

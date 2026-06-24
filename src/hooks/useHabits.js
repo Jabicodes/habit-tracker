@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 
 const todayStr = () => new Date().toISOString().split('T')[0]
 
-export function useHabits() {
+export function useHabits(userId) {
   const [habits, setHabits] = useState([])
   const [completions, setCompletions] = useState(new Set())
   const [streak, setStreak] = useState(0)
@@ -11,12 +11,11 @@ export function useHabits() {
   const [error, setError] = useState(null)
 
   // ------------------------------------------------------------------
-  // Streak calculation (client-side, last 90 days)
-  // A day is "perfect" when every active habit was completed.
-  // If today is not yet perfect, start the streak count from yesterday.
+  // Streak calculation — uid passed explicitly so the query is always
+  // scoped to the right user even if RLS is misconfigured.
   // ------------------------------------------------------------------
-  const calcStreak = useCallback(async (activeHabits, todayCompletions) => {
-    if (!activeHabits.length) return 0
+  const calcStreak = useCallback(async (activeHabits, todayCompletions, uid) => {
+    if (!activeHabits.length || !uid) return 0
 
     const ids = activeHabits.map((h) => h.id)
 
@@ -26,6 +25,7 @@ export function useHabits() {
     const { data } = await supabase
       .from('daily_completions')
       .select('habit_id, completed_date')
+      .eq('user_id', uid)
       .gte('completed_date', since.toISOString().split('T')[0])
 
     const byDate = {}
@@ -41,9 +41,8 @@ export function useHabits() {
     const base = new Date()
     base.setHours(0, 0, 0, 0)
 
-    // If today not finished yet, start from yesterday
     let count = 0
-    let startOffset = isPerfect(todayStr()) ? 0 : 1
+    const startOffset = isPerfect(todayStr()) ? 0 : 1
 
     for (let i = startOffset; i < 90; i++) {
       const d = new Date(base)
@@ -60,19 +59,34 @@ export function useHabits() {
   }, [])
 
   // ------------------------------------------------------------------
-  // Load everything
+  // Load everything — explicit user_id filters on every query so this
+  // works correctly even if RLS policies are missing or misconfigured.
   // ------------------------------------------------------------------
   const loadAll = useCallback(async () => {
+    if (!userId) {
+      setHabits([])
+      setCompletions(new Set())
+      setStreak(0)
+      setLoading(false)
+      return
+    }
+
     try {
       setLoading(true)
       setError(null)
 
       const [{ data: habitsData, error: habitsErr }, { data: compData, error: compErr }] =
         await Promise.all([
-          supabase.from('habits').select('*').eq('is_active', true).order('order_index'),
+          supabase
+            .from('habits')
+            .select('*')
+            .eq('user_id', userId)
+            .eq('is_active', true)
+            .order('order_index'),
           supabase
             .from('daily_completions')
             .select('habit_id')
+            .eq('user_id', userId)
             .eq('completed_date', todayStr()),
         ])
 
@@ -84,41 +98,42 @@ export function useHabits() {
 
       setHabits(habitsArr)
       setCompletions(compSet)
-      setStreak(await calcStreak(habitsArr, compSet))
+      setStreak(await calcStreak(habitsArr, compSet, userId))
     } catch (err) {
       setError(err.message)
     } finally {
       setLoading(false)
     }
-  }, [calcStreak])
+  }, [userId, calcStreak])
 
   // Initial load + midnight auto-reset
   useEffect(() => {
     loadAll()
 
+    if (!userId) return
+
     const now = new Date()
     const midnight = new Date(now)
     midnight.setDate(midnight.getDate() + 1)
     midnight.setHours(0, 0, 0, 0)
-    const msUntil = midnight - now
 
-    const t = setTimeout(loadAll, msUntil)
+    const t = setTimeout(loadAll, midnight - now)
     return () => clearTimeout(t)
-  }, [loadAll])
+  }, [loadAll, userId])
 
   // ------------------------------------------------------------------
-  // Actions
+  // Actions — user_id stamped on all inserts (RLS + explicit filter)
   // ------------------------------------------------------------------
   const completeHabit = async (habitId) => {
     const { error: err } = await supabase
       .from('daily_completions')
-      .upsert({ habit_id: habitId, completed_date: todayStr() })
+      .upsert({ habit_id: habitId, completed_date: todayStr(), user_id: userId })
 
     if (err) throw err
 
     const next = new Set([...completions, habitId])
     setCompletions(next)
-    setStreak(await calcStreak(habits, next))
+    setStreak(await calcStreak(habits, next, userId))
   }
 
   const addHabit = async (name, description = '') => {
@@ -126,7 +141,12 @@ export function useHabits() {
 
     const { data, error: err } = await supabase
       .from('habits')
-      .insert({ name: name.trim(), description: description.trim(), order_index: maxOrder + 1 })
+      .insert({
+        name: name.trim(),
+        description: description.trim(),
+        order_index: maxOrder + 1,
+        user_id: userId,
+      })
       .select()
       .single()
 
@@ -135,7 +155,11 @@ export function useHabits() {
   }
 
   const updateHabit = async (id, updates) => {
-    const { error: err } = await supabase.from('habits').update(updates).eq('id', id)
+    const { error: err } = await supabase
+      .from('habits')
+      .update(updates)
+      .eq('id', id)
+      .eq('user_id', userId)
     if (err) throw err
     setHabits((prev) => prev.map((h) => (h.id === id ? { ...h, ...updates } : h)))
   }
@@ -145,6 +169,7 @@ export function useHabits() {
       .from('habits')
       .update({ is_active: false })
       .eq('id', id)
+      .eq('user_id', userId)
     if (err) throw err
     setHabits((prev) => prev.filter((h) => h.id !== id))
   }
@@ -154,11 +179,15 @@ export function useHabits() {
     try {
       await Promise.all(
         reordered.map((h, i) =>
-          supabase.from('habits').update({ order_index: i }).eq('id', h.id)
+          supabase
+            .from('habits')
+            .update({ order_index: i })
+            .eq('id', h.id)
+            .eq('user_id', userId)
         )
       )
     } catch (err) {
-      await loadAll() // revert
+      await loadAll()
       throw err
     }
   }
