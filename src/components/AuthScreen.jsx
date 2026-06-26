@@ -1,13 +1,9 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { Button } from './ui/Button'
-import { Input } from './ui/Input'
 import { CheckIcon } from './ui/Icons'
 
 const toEmail = (username) => `${username.toLowerCase().trim()}@habittracker.com`
 
-// Supabase AuthError has both .message (string) and .code (string) fields.
-// Check both so we aren't brittle against message wording changes.
 function toFriendly(err) {
   const code = err?.code ?? ''
   const msg  = (err?.message ?? '').toLowerCase()
@@ -36,11 +32,11 @@ function toFriendly(err) {
 }
 
 export default function AuthScreen() {
-  const [mode, setMode] = useState('login') // 'login' | 'signup'
+  const [mode, setMode] = useState('login')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState(null) // { text, type: 'error'|'warning' }
+  const [message, setMessage] = useState(null)
 
   const switchMode = (next) => {
     setMode(next)
@@ -64,16 +60,12 @@ export default function AuthScreen() {
           return
         }
 
-        // When email confirmation is off, Supabase silently "succeeds" for duplicate
-        // emails but returns an empty identities array instead of an error.
         if (data.user?.identities?.length === 0) {
           setMessage({ text: 'Username already taken, please choose another.', type: 'error' })
           return
         }
 
         if (!data.session) {
-          // User was created but email confirmation is still required —
-          // there is no inbox to confirm, so the user is stuck until it's disabled.
           setMessage({
             text:
               'Account created! However, email confirmation is still enabled.\n' +
@@ -82,18 +74,12 @@ export default function AuthScreen() {
           })
           return
         }
-
-        // session exists → useAuth's onAuthStateChange fires, app navigates automatically
-
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
-
         if (error) {
           setMessage(toFriendly(error))
           return
         }
-
-        // no error → session is live, useAuth fires, app navigates automatically
       }
     } catch (err) {
       setMessage(toFriendly(err))
@@ -105,25 +91,67 @@ export default function AuthScreen() {
   const canSubmit = !loading && username.trim().length > 0 && password.length > 0
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-5">
+    <div
+      className="min-h-screen flex flex-col items-center justify-center px-5 relative overflow-hidden"
+      style={{ backgroundColor: '#0A0A0A' }}
+    >
+      {/* Animated background line */}
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none"
+        viewBox="0 0 1440 900"
+        preserveAspectRatio="xMidYMid slice"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <path
+          d="M 1440 0 C 1000 300 400 600 0 900"
+          stroke="rgba(255,255,255,0.3)"
+          strokeWidth="1"
+          fill="none"
+          className="auth-bg-line"
+        />
+        <circle cx="1232" cy="135" r="3"   fill="white" className="auth-bg-dot" style={{ animationDelay: '0s' }} />
+        <circle cx="1010" cy="270" r="2.5" fill="white" className="auth-bg-dot" style={{ animationDelay: '0.8s' }} />
+        <circle cx="781"  cy="405" r="3"   fill="white" className="auth-bg-dot" style={{ animationDelay: '1.6s' }} />
+        <circle cx="553"  cy="540" r="2.5" fill="white" className="auth-bg-dot" style={{ animationDelay: '2.4s' }} />
+        <circle cx="332"  cy="675" r="3"   fill="white" className="auth-bg-dot" style={{ animationDelay: '3.2s' }} />
+        <circle cx="126"  cy="810" r="2.5" fill="white" className="auth-bg-dot" style={{ animationDelay: '4s' }} />
+      </svg>
+
       {/* Logo */}
-      <div className="mb-10 text-center">
-        <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-600/30">
+      <div className="mb-10 text-center relative z-10">
+        <div
+          className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+          style={{
+            background: '#FF8A65',
+            boxShadow: '0 8px 24px rgba(255,138,101,0.35)',
+          }}
+        >
           <CheckIcon className="w-8 h-8" />
         </div>
         <h1 className="text-2xl font-bold text-white">Habit Tracker</h1>
-        <p className="text-slate-500 text-sm mt-1">Build your daily streaks</p>
+        <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Build your daily streaks</p>
       </div>
 
       {/* Card */}
-      <div className="w-full max-w-sm bg-slate-800 border border-slate-700/60 rounded-2xl p-6">
-        <h2 className="text-lg font-bold text-white mb-6">
+      <div
+        className="auth-screen w-full max-w-sm relative z-10"
+        style={{
+          background: 'rgba(255,255,255,0.05)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255,255,255,0.1)',
+          borderRadius: '16px',
+          padding: '32px',
+        }}
+      >
+        <h2 className="font-bold text-white mb-6" style={{ fontSize: '24px' }}>
           {mode === 'login' ? 'Welcome back' : 'Create account'}
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <Input
+            <input
               type="text"
               placeholder="Username"
               value={username}
@@ -133,21 +161,23 @@ export default function AuthScreen() {
               autoCorrect="off"
               spellCheck={false}
               required
+              className="auth-input w-full"
             />
             {mode === 'signup' && (
-              <p className="text-slate-600 text-xs mt-1.5 px-1">
+              <p className="text-xs mt-1.5 px-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
                 Letters, numbers, . _ and - only · automatically lowercased
               </p>
             )}
           </div>
 
-          <Input
+          <input
             type="password"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
             required
+            className="auth-input w-full"
           />
 
           {message && (
@@ -163,36 +193,38 @@ export default function AuthScreen() {
             </div>
           )}
 
-          <Button
+          <button
             type="submit"
-            className="w-full mt-1 rounded-xl"
             disabled={!canSubmit}
+            className="auth-submit-btn w-full mt-1 font-bold text-white"
           >
-            {loading
-              ? 'Please wait…'
-              : mode === 'login'
-              ? 'Log in'
-              : 'Sign up'}
-          </Button>
+            {loading ? 'Please wait…' : mode === 'login' ? 'Log in' : 'Sign up'}
+          </button>
         </form>
 
         <div className="mt-5 text-center">
           {mode === 'login' ? (
-            <p className="text-slate-500 text-sm">
+            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
               No account?{' '}
               <button
                 onClick={() => switchMode('signup')}
-                className="text-indigo-400 hover:text-indigo-300 transition-colors font-medium"
+                className="font-medium transition-colors"
+                style={{ color: '#FF8A65' }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#FF6B35')}
+                onMouseLeave={e => (e.currentTarget.style.color = '#FF8A65')}
               >
                 Sign up
               </button>
             </p>
           ) : (
-            <p className="text-slate-500 text-sm">
+            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
               Already have an account?{' '}
               <button
                 onClick={() => switchMode('login')}
-                className="text-indigo-400 hover:text-indigo-300 transition-colors font-medium"
+                className="font-medium transition-colors"
+                style={{ color: '#FF8A65' }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#FF6B35')}
+                onMouseLeave={e => (e.currentTarget.style.color = '#FF8A65')}
               >
                 Log in
               </button>

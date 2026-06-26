@@ -4,13 +4,13 @@
 
 @layer base {
   html {
-    /* respect iOS safe areas */
     padding: env(safe-area-inset-top) env(safe-area-inset-right)
              env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
 
   body {
-    @apply bg-slate-950 text-white;
+    background-color: #111418;
+    color: white;
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior: none;
   }
@@ -27,4 +27,91 @@
   .pb-safe {
     padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
   }
+}
+
+@keyframes app-fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.app-fade-in {
+  animation: app-fade-in 0.45s ease forwards;
+}
+
+/* ── Auth screen background animation ───────────────────────────────────── */
+
+@keyframes auth-breathe {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+.auth-bg-line {
+  animation: auth-breathe 6s ease-in-out infinite;
+}
+
+.auth-bg-dot {
+  animation: auth-breathe 6s ease-in-out infinite;
+}
+
+/* ── Auth input fields ───────────────────────────────────────────────────── */
+
+.auth-input {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: white;
+  font-size: 0.9375rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  display: block;
+}
+
+.auth-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.auth-input:focus {
+  border-color: #FF8A65;
+  box-shadow: 0 0 0 3px rgba(255, 138, 101, 0.15);
+}
+
+/* ── Auth submit button ──────────────────────────────────────────────────── */
+
+.auth-submit-btn {
+  background: linear-gradient(135deg, #FF8A65, #FF6B35);
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.auth-submit-btn:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(255, 138, 101, 0.35);
+}
+
+.auth-submit-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ── Habit complete animation ────────────────────────────────────────────── */
+
+@keyframes habit-check {
+  0%   { transform: scale(0.8); opacity: 0.5; }
+  60%  { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.habit-check-animate {
+  animation: habit-check 0.3s ease forwards;
+}
+
+/* ── Pomodoro ring transition ────────────────────────────────────────────── */
+
+.pomodoro-ring-progress {
+  transition: stroke-dashoffset 0.9s linear;
 }
