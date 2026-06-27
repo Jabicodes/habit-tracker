@@ -77,6 +77,98 @@ function LogOutIcon() {
   )
 }
 
+// ── Mobile bottom nav ─────────────────────────────────────────────────────────
+
+const MOBILE_TABS = [
+  {
+    id: 'dashboard',
+    label: 'Dashboard',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="7" height="7" rx="1" />
+        <rect x="14" y="3" width="7" height="7" rx="1" />
+        <rect x="14" y="14" width="7" height="7" rx="1" />
+        <rect x="3" y="14" width="7" height="7" rx="1" />
+      </svg>
+    ),
+  },
+  {
+    id: 'sessions',
+    label: 'Sessions',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="13" r="8" />
+        <path d="M12 9v4l2.5 2.5" />
+        <path d="M9 3h6" />
+        <path d="M12 3v2" />
+      </svg>
+    ),
+  },
+  {
+    id: 'habits',
+    label: 'Habits',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="8" y1="6" x2="21" y2="6" />
+        <line x1="8" y1="12" x2="21" y2="12" />
+        <line x1="8" y1="18" x2="21" y2="18" />
+        <line x1="3" y1="6" x2="3.01" y2="6" />
+        <line x1="3" y1="12" x2="3.01" y2="12" />
+        <line x1="3" y1="18" x2="3.01" y2="18" />
+      </svg>
+    ),
+  },
+  {
+    id: 'statistics',
+    label: 'Stats',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="18" y1="20" x2="18" y2="10" />
+        <line x1="12" y1="20" x2="12" y2="4" />
+        <line x1="6"  y1="20" x2="6"  y2="14" />
+      </svg>
+    ),
+  },
+  {
+    id: 'settings',
+    label: 'Settings',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+      </svg>
+    ),
+  },
+]
+
+function MobileBottomNav({ activeNav, onNavChange }) {
+  return (
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 p-4 bg-transparent">
+      <div className="bg-[#121214]/90 backdrop-blur-md border border-zinc-800/50 rounded-2xl max-w-md mx-auto px-4 py-2 flex justify-around items-center shadow-2xl">
+        {MOBILE_TABS.map(({ id, label, icon }) => {
+          const isActive = activeNav === id
+          return (
+            <button
+              key={id}
+              onClick={() => onNavChange(id)}
+              className={[
+                'flex flex-col items-center justify-center py-1.5 px-2',
+                'active:scale-95 transition-transform duration-100',
+                isActive ? 'text-[#FF8A65]' : 'text-zinc-500 hover:text-zinc-300',
+              ].join(' ')}
+            >
+              {icon}
+              <span className="text-[10px] font-semibold tracking-wider uppercase mt-1">
+                {label}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // ── Desktop sidebar ───────────────────────────────────────────────────────────
 
 const NAV_ITEMS = [
@@ -90,7 +182,7 @@ const NAV_ITEMS = [
 function Sidebar({ activeNav, onNavChange, onSignOut }) {
   return (
     <aside
-      className="w-64 h-screen flex flex-col shrink-0"
+      className="hidden md:flex w-64 h-screen flex-col shrink-0"
       style={{ background: '#09090b', borderRight: '1px solid rgba(39,39,42,0.4)' }}
     >
       {/* Brand */}
@@ -222,7 +314,7 @@ export default function App() {
         />
 
         {/* Right: main content arena */}
-        <main className="flex-1 h-screen overflow-y-auto bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-900 via-zinc-950 to-black">
+        <main className="flex-1 h-screen overflow-y-auto pb-24 md:pb-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-900 via-zinc-950 to-black">
 
           {activeNav === 'habits' ? (
             <ManageHabits
@@ -267,6 +359,8 @@ export default function App() {
             />
           )}
         </main>
+
+        <MobileBottomNav activeNav={activeNav} onNavChange={setActiveNav} />
 
       </div>
     </>

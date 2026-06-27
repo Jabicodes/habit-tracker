@@ -81,7 +81,7 @@ export default function SessionsScreen({ habits, completions, userId, username }
   useEffect(() => { sessionTypeRef.current = sessionType }, [sessionType])
   useEffect(() => { focusDoneRef.current = focusDone },     [focusDone])
 
-  const active = habits.filter((h) => h.is_active)
+  const active = (habits || []).filter((h) => h.is_active)
 
   // Default selected habit to first incomplete
   useEffect(() => {
@@ -173,6 +173,15 @@ export default function SessionsScreen({ habits, completions, userId, username }
     const c = loadSettings()
     setTimeLeft(totalForType(sessionType, c))
     didEndRef.current = false
+  }
+
+  if (!habits) {
+    return (
+      <div className="w-full h-64 flex flex-col items-center justify-center bg-transparent">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF8A65]" />
+        <p className="text-zinc-500 text-xs mt-3 tracking-wide">Loading your habits...</p>
+      </div>
+    )
   }
 
   const currentCfg = loadSettings()
@@ -318,11 +327,14 @@ export default function SessionsScreen({ habits, completions, userId, username }
                 cursor: 'pointer',
               }}
             >
-              {active.map((h) => (
-                <option key={h.id} value={h.id} style={{ background: CARD }}>
-                  {h.name}{completions.has(h.id) ? ' ✓' : ''}
-                </option>
-              ))}
+              {active.length === 0
+                ? <option value="" style={{ background: CARD }}>No active habits today</option>
+                : active.map((h) => (
+                    <option key={h.id} value={h.id} style={{ background: CARD }}>
+                      {h.name}{completions.has(h.id) ? ' ✓' : ''}
+                    </option>
+                  ))
+              }
             </select>
             {/* Dropdown arrow */}
             <svg
