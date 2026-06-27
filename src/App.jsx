@@ -11,6 +11,13 @@ import { Screen } from './components/ui/Screen'
 
 const ORANGE = '#FF8A65'
 
+function getGreeting() {
+  const h = new Date().getHours()
+  if (h >= 5 && h < 12) return 'Good Morning,'
+  if (h >= 12 && h < 17) return 'Good Afternoon,'
+  return 'Good Evening,'
+}
+
 // ── Sidebar icons (Lucide-style inline SVGs) ─────────────────────────────────
 
 function DashboardIcon() {
@@ -315,6 +322,16 @@ export default function App() {
 
         {/* Right: main content arena */}
         <main className="flex-1 h-screen overflow-y-auto pb-24 md:pb-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-900 via-zinc-950 to-black">
+
+          {/* ── Dashboard greeting — single authoritative block ── */}
+          {activeNav === 'dashboard' && (
+            <div className="px-8 pt-8 pb-2">
+              <p className="text-2xl font-bold tracking-tight text-zinc-100 mt-2">
+                {getGreeting()} {username}!
+              </p>
+              <p className="text-zinc-500 text-sm mt-1">Welcome Back to Keystone</p>
+            </div>
+          )}
 
           {activeNav === 'habits' ? (
             <ManageHabits

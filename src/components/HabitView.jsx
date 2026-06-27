@@ -35,13 +35,6 @@ function getWeekDays(todayString) {
   })
 }
 
-function getGreeting() {
-  const h = new Date().getHours()
-  if (h >= 5 && h < 12) return 'Good morning'
-  if (h >= 12 && h < 17) return 'Good afternoon'
-  return 'Good evening'
-}
-
 const WEEK_LETTERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 
 function formatFocusTime(minutes) {
@@ -225,42 +218,8 @@ function DashboardHome({
   username, doneCount, total, localStreak, pomStats, weeklyRatio,
   weekDays, byDate, today, active, completions, onComplete, onManage,
 }) {
-  const dateLabel = new Date().toLocaleDateString('en-US', {
-    weekday: 'long', month: 'long', day: 'numeric',
-  })
-
   return (
-    <div className="px-6 pt-8">
-
-      {/* ── Header ── */}
-      <div className="flex items-start justify-between mb-8">
-        <div>
-          <p
-            className="text-xs font-medium uppercase mb-1"
-            style={{ color: '#52525b', letterSpacing: '0.12em' }}
-          >
-            {getGreeting()}
-          </p>
-          <h1
-            className="text-2xl font-semibold tracking-tight"
-            style={{ color: '#f4f4f5' }}
-          >
-            {username || 'there'}
-          </h1>
-          <p className="text-sm mt-1" style={{ color: '#71717a' }}>
-            {dateLabel}
-            {localStreak > 0 && (
-              <span> · 🔥 {localStreak} day streak</span>
-            )}
-          </p>
-        </div>
-        <div
-          className="w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm shrink-0 mt-1"
-          style={{ background: ORANGE, color: '#fff' }}
-        >
-          {(username || 'U')[0].toUpperCase()}
-        </div>
-      </div>
+    <div className="px-6 pt-4">
 
       {/* ── Bento metric cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
